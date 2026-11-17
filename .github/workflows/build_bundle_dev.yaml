@@ -1,71 +1,130 @@
+# Modified in this fork (see NOTICE):
+#   - runs on GitHub-hosted runners instead of `[self-hosted]`
+#   - publishes to GitHub Container Registry instead of Docker Hub
+#     (Docker Hub is used only if the optional DOCKERHUB_IMAGE variable is set)
+#   - platforms are configurable, default is linux/amd64
+# Build arguments, base images and tag naming are unchanged from upstream.
+
 name: 'Build restreamer dev images'
 
 on:
     workflow_dispatch:
+        inputs:
+            platforms:
+                description: 'Target platforms'
+                type: choice
+                default: 'linux/amd64'
+                options:
+                    - 'linux/amd64'
+                    - 'linux/amd64,linux/arm64'
+                    - 'linux/amd64,linux/arm64,linux/arm/v7'
+            push:
+                description: 'Push the resulting images to the registry'
+                type: boolean
+                default: true
     workflow_call:
+        inputs:
+            platforms:
+                description: 'Target platforms'
+                type: string
+                default: 'linux/amd64'
+            push:
+                description: 'Push the resulting images to the registry'
+                type: boolean
+                default: true
     schedule:
         - cron: '37 5 * * *'
-    push:
-        branches-ignore:
-            - '**'
+
+permissions:
+    contents: read
+    packages: write
+
+concurrency:
+    group: build-dev-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
     docker:
-        runs-on: [self-hosted]
+        name: 'Build ${{ matrix.name }} image'
+        runs-on: ubuntu-latest
+        timeout-minutes: 120
+        env:
+            SHOULD_PUSH: ${{ github.event_name == 'push' || github.event_name == 'schedule' || inputs.push }}
         strategy:
+            fail-fast: false
             matrix:
                 include:
                     - ui: dev
                       core: core-dev-alpine3.23
                       ffmpeg: ffmpeg8.1.1-alpine3.23
-                      platforms: linux/amd64,linux/arm64,linux/arm/v7
                       name: dev
                     - ui: dev
                       core: core-dev-alpine3.23
                       ffmpeg: ffmpeg8.1.1-rpi-alpine3.23
-                      platforms: linux/arm64,linux/arm/v7
                       name: rpi-dev
                     - ui: dev
                       core: core-dev-ubuntu24.04
                       ffmpeg: ffmpeg8.1.1-vaapi-ubuntu24.04
-                      platforms: linux/amd64
                       name: vaapi-dev
                     - ui: dev
                       core: core-dev-ubuntu24.04
                       ffmpeg: ffmpeg8.1.1-cuda-ubuntu24.04-cuda12.9.1
-                      platforms: linux/amd64
                       name: cuda-dev
         steps:
             - name: Checkout
               uses: actions/checkout@v4
 
+            - name: Prepare registry image names
+              id: names
+              env:
+                  DOCKERHUB_IMAGE: ${{ vars.DOCKERHUB_IMAGE }}
+              run: |
+                  set -euo pipefail
+                  names="ghcr.io/$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
+                  if [ -n "${DOCKERHUB_IMAGE}" ]; then
+                    names="${names}"$'\n'"${DOCKERHUB_IMAGE}"
+                  fi
+                  {
+                    echo 'images<<__EOF__'
+                    echo "${names}"
+                    echo '__EOF__'
+                  } >> "$GITHUB_OUTPUT"
+
             - name: Docker meta
               id: meta
               uses: docker/metadata-action@v5
               with:
-                  images: |
-                      datarhei/restreamer
+                  images: ${{ steps.names.outputs.images }}
                   tags: |
                       type=raw,value=${{ matrix.name }}
+                      type=sha,prefix=${{ matrix.name }}-sha-,format=short
 
             - name: Set up QEMU
-              uses: docker/setup-qemu-action@master
+              uses: docker/setup-qemu-action@v3
               with:
                   platforms: all
 
             - name: Set up Docker Buildx
               id: buildx
-              uses: docker/setup-buildx-action@master
+              uses: docker/setup-buildx-action@v3
 
-            - name: Login to DockerHub
-              if: github.event_name != 'pull_request'
+            - name: Login to GitHub Container Registry
+              if: env.SHOULD_PUSH == 'true'
               uses: docker/login-action@v3
               with:
-                  username: ${{ secrets.DOCKER_USERNAME }}
-                  password: ${{ secrets.DOCKER_PASSWORD }}
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Login to Docker Hub (optional)
+              if: env.SHOULD_PUSH == 'true' && vars.DOCKERHUB_IMAGE != ''
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Build Multi-Arch
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                   builder: ${{ steps.buildx.outputs.name }}
                   context: .
@@ -74,7 +133,9 @@ jobs:
                       RESTREAMER_UI_IMAGE=datarhei/restreamer-ui:${{ matrix.ui }}
                       CORE_IMAGE=datarhei/base:${{ matrix.core }}
                       FFMPEG_IMAGE=datarhei/base:${{ matrix.ffmpeg }}
-                  platforms: ${{ matrix.platforms }}
-                  push: true
+                  platforms: ${{ inputs.platforms || 'linux/amd64' }}
+                  push: ${{ env.SHOULD_PUSH == 'true' }}
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
+                  cache-from: type=gha,scope=dev-${{ matrix.name }}
+                  cache-to: type=gha,mode=max,scope=dev-${{ matrix.name }}

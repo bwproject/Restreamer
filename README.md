@@ -1,47 +1,86 @@
+<!--
+  ВНИМАНИЕ: этот файл изменён по сравнению с оригиналом.
+  Это русский перевод README проекта datarhei/restreamer.
+  Оригинал: https://github.com/datarhei/restreamer — ветка 2.x, коммит fd12aee
+  Оригинальный английский текст без изменений: README.en.md
+  Лицензия оригинала: Apache License 2.0 — см. файл LICENSE.
+  Перечень изменений: файл NOTICE.
+-->
+
 <h1 align="center">Restreamer</h1>
-<h3 align="center">A really nice and free alternative for handling live streams.</h3>
+<h3 align="center">По-настоящему удобная и бесплатная альтернатива для работы с прямыми трансляциями.</h3>
 <p align="center">
-<a href="https://github.com/datarhei/restreamer/blob/2.x/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/datarhei/restreamer" alt="License" /></a>
-<a href="https://github.com/datarhei/restreamer/releases" target="_blank"><img src="https://img.shields.io/github/v/release/datarhei/restreamer?include_prereleases" alt="License" /></a>
-<a href="https://hub.docker.com/r/datarhei/restreamer" target="_blank"><img src="https://img.shields.io/docker/pulls/datarhei/restreamer" alt="Docker pulls" /></a>
-<a href="https://docs.datarhei.com/restreamer/getting-started/quick-start" target="_blank"><img src="https://img.shields.io/badge/documentation-get%20started-green" alt="Documentation" /></a>
+<a href="https://github.com/bwproject/Restreamer/blob/main/LICENSE" target="_blank"><img src="https://img.shields.io/github/license/bwproject/Restreamer" alt="Лицензия" /></a>
+<a href="https://github.com/bwproject/Restreamer/releases" target="_blank"><img src="https://img.shields.io/github/v/release/bwproject/Restreamer?include_prereleases" alt="Релиз" /></a>
+<a href="https://hub.docker.com/r/datarhei/restreamer" target="_blank"><img src="https://img.shields.io/docker/pulls/datarhei/restreamer" alt="Загрузки Docker-образа" /></a>
+<a href="https://docs.datarhei.com/restreamer/getting-started/quick-start" target="_blank"><img src="https://img.shields.io/badge/%D0%B4%D0%BE%D0%BA%D1%83%D0%BC%D0%B5%D0%BD%D1%82%D0%B0%D1%86%D0%B8%D1%8F-%D1%81%20%D1%87%D0%B5%D0%B3%D0%BE%20%D0%BD%D0%B0%D1%87%D0%B0%D1%82%D1%8C-green" alt="Документация" /></a>
 </p>
-<p align="center"><a href="https://demo.datarhei.com/ui" target="_blank">Try live demo</a><br />
-<a href="https://demo.datarhei.com/ui" target="_blank"><img src="https://img.shields.io/badge/username-admin-blue" alt="demo username" /></a>
-<a href="https://demo.datarhei.com/ui" target="_blank"><img src="https://img.shields.io/badge/password-demo-blue" alt="demo password" /></a>
+<p align="center"><a href="https://demo.datarhei.com/ui" target="_blank">Посмотреть живое демо</a><br />
+<a href="https://demo.datarhei.com/ui" target="_blank"><img src="https://img.shields.io/badge/%D0%BB%D0%BE%D0%B3%D0%B8%D0%BD-admin-blue" alt="логин для демо" /></a>
+<a href="https://demo.datarhei.com/ui" target="_blank"><img src="https://img.shields.io/badge/%D0%BF%D0%B0%D1%80%D0%BE%D0%BB%D1%8C-demo-blue" alt="пароль для демо" /></a>
+
+---
+
+## 📖 О переводе, источнике и лицензии
+
+**Это неофициальный русский перевод документации проекта Restreamer.**
+
+| | |
+|---|---|
+| **Оригинальный проект** | [datarhei/restreamer](https://github.com/datarhei/restreamer) |
+| **Авторы оригинала** | datarhei GmbH и участники проекта (см. историю коммитов и `LICENSE`) |
+| **Ветка / коммит перевода** | `2.x`, `fd12aee` («Bundle with FFmpeg 8») |
+| **Лицензия оригинала** | [Apache License 2.0](./LICENSE) |
+| **Что переведено** | только этот файл, `README.md`. Оригинальный английский текст сохранён без изменений в [`README.en.md`](./README.en.md) |
+| **Что изменено** | см. [`NOTICE`](./NOTICE) — там перечислены все правки относительно оригинала |
+
+Оригинальный текст распространяется под лицензией **Apache License, Version 2.0**.
+В соответствии с её условиями в этом репозитории сохранены файл `LICENSE`, все
+уведомления об авторских правах и перечень внесённых изменений (`NOTICE`).
+Перевод является производной работой и распространяется под той же лицензией
+Apache-2.0.
+
+**Товарные знаки.** Названия «datarhei» и «Restreamer», логотипы и оформление
+принадлежат их правообладателям. Лицензия Apache-2.0 не даёт прав на использование
+товарных знаков. Этот репозиторий **не является официальным** и не связан с
+datarhei GmbH, не одобрен и не поддерживается ею. Официальный источник —
+[datarhei/restreamer](https://github.com/datarhei/restreamer), официальная
+документация — [docs.datarhei.com/restreamer](https://docs.datarhei.com/restreamer).
+
+---
 
 <p align="center">
   <a href="https://datarhei.com">
-    <img src="https://github.com/datarhei/restreamer/blob/2.x/readme-promo.gif" alt="Restreamer Promo Video" />
+    <img src="./readme-promo.gif" alt="Промо-ролик Restreamer" />
   </a>
 </p>
 
-<p align="center">Self-hosting solution to stream live to your website and publish to many like YouTube-Live, Twitter, Twitch, Vimeo, and other platforms or services. Our Docker-Image is easy to install and runs on Linux environments (MacOS/Windows by Docker Desktop). Moreover, combine the Restreamer with single-board computers like Raspberry Pi or GPU powered systems for Video-Encoding.</p>
+<p align="center">Решение для самостоятельного размещения (self-hosting), которое позволяет вести прямые трансляции на свой сайт и публиковать их на множестве платформ — YouTube-Live, Twitter, Twitch, Vimeo и других сервисах. Наш Docker-образ прост в установке и работает в Linux-окружениях (MacOS/Windows — через Docker Desktop). Кроме того, Restreamer можно совмещать с одноплатными компьютерами вроде Raspberry Pi или с системами, где видео кодируется на GPU.</p>
 <br />
 <hr />
 
-## Features
+## Возможности
 
-- Simplified User-Interface
-- Easy wizard configuration
-- Multiple audio/video inputs, outputs, protocols, and codecs
-- ReStreaming to platforms such as YouTube-Live, to software such as Wowza Media Server, and others based on protocols such as RTMP, SRT, ...
-- Option to mux a separate audio channel to the video
-- Build-in VideoJS-Player for your Website
-- Configurable publication website for streaming without player embedding
-- Content license with Creative Commons
-- HTTP/S- (HLS), RTMP/S- & SRT-Streaming Server
-- Automatic Let's Encrypt HTTPS certification
-- Viewer/Bandwidth Monitoring and limiting
-- Raspberry Pi (MMAL/OMX), Nvidia Cuda, Intel VAAPI support
-- Support for Hardware- and Virtual-Devices
-- FFmpeg Video-Processing (as native as possible)
-- REST-API (JSON) and 100% Swagger documented
-- Resource Monitoring (optionally by Prom-Metrics)
-- Server- and Process-Logging
-- GDPR compliant without third-party providers and does not save audience data
+- Упрощённый пользовательский интерфейс
+- Простой мастер настройки
+- Несколько источников аудио/видео, выходов, протоколов и кодеков
+- Рестриминг на платформы вроде YouTube-Live, в программы вроде Wowza Media Server и другие — по протоколам RTMP, SRT, ...
+- Возможность подмешать отдельную аудиодорожку к видео
+- Встроенный плеер VideoJS для вашего сайта
+- Настраиваемая страница публикации для трансляции без встраивания плеера
+- Лицензирование контента через Creative Commons
+- Потоковый сервер HTTP/S (HLS), RTMP/S и SRT
+- Автоматическое получение HTTPS-сертификатов Let's Encrypt
+- Мониторинг и ограничение числа зрителей и полосы пропускания
+- Поддержка Raspberry Pi (MMAL/OMX), Nvidia CUDA, Intel VAAPI
+- Поддержка аппаратных и виртуальных устройств
+- Обработка видео через FFmpeg (максимально нативно)
+- REST-API (JSON) со 100% документацией в Swagger
+- Мониторинг ресурсов (опционально — через метрики Prometheus)
+- Логирование сервера и процессов
+- Соответствие GDPR: без сторонних провайдеров, данные зрителей не сохраняются
 
-## Quick setup
+## Быстрая установка
 
 ### AMD64/ARMv7/ARM64:
 ```sh
@@ -53,8 +92,8 @@ docker run -d --restart=always --name restreamer \
    datarhei/restreamer:latest
 ```
 
-*`--privileged` just for local devices like usb cameras.*    
-*Try `--security-opt seccomp=unconfined` if no network source can be reached.*
+*Флаг `--privileged` нужен только для локальных устройств вроде USB-камер.*
+*Если ни один сетевой источник недоступен, попробуйте `--security-opt seccomp=unconfined`.*
 
 ### ARMv7/ARM64 Raspberry Pi:
 ```sh
@@ -67,10 +106,10 @@ docker run -d --restart=always --name restreamer \
    datarhei/restreamer:rpi-latest
 ```
 
-*`--privileged` just for local devices like usb cameras.*    
-*Try `--security-opt seccomp=unconfined` if no network source can be reached.*
+*Флаг `--privileged` нужен только для локальных устройств вроде USB-камер.*
+*Если ни один сетевой источник недоступен, попробуйте `--security-opt seccomp=unconfined`.*
 
-### AMD64 Nvidia Cuda:
+### AMD64 Nvidia CUDA:
 ```sh
 docker run -d --restart=always --name restreamer \
    -v /opt/restreamer/config:/core/config -v /opt/restreamer/data:/core/data \
@@ -81,8 +120,8 @@ docker run -d --restart=always --name restreamer \
    datarhei/restreamer:cuda-latest
 ```
 
-*`--privileged` just for local devices like usb cameras.*    
-*Try `--security-opt seccomp=unconfined` if no network source can be reached.*
+*Флаг `--privileged` нужен только для локальных устройств вроде USB-камер.*
+*Если ни один сетевой источник недоступен, попробуйте `--security-opt seccomp=unconfined`.*
 
 ### AMD64 Intel VAAPI:
 ```sh
@@ -95,23 +134,23 @@ docker run -d --restart=always --name restreamer \
    datarhei/restreamer:vaapi-latest
 ```
 
-*`--privileged` just for local devices like usb cameras.*    
-*Try `--security-opt seccomp=unconfined` if no network source can be reached.*
+*Флаг `--privileged` нужен только для локальных устройств вроде USB-камер.*
+*Если ни один сетевой источник недоступен, попробуйте `--security-opt seccomp=unconfined`.*
 
-*For external access (http/s, rtmp/s, srt), port forwarding from your Internet-Router to the Restreamer's internal IP address may need to be set up.*
+*Для доступа извне (http/s, rtmp/s, srt) может потребоваться проброс портов на интернет-роутере на внутренний IP-адрес Restreamer.*
 
-## Documentation
+## Документация
 
-Documentation is available on [docs.datarhei.com/restreamer](https://docs.datarhei.com/restreamer). We give many pieces of information, from setting up a camera, embedding your player upon your website, and streaming to services like, e.g., YouTube-Live, and many more.
+Документация доступна на [docs.datarhei.com/restreamer](https://docs.datarhei.com/restreamer) (на английском языке). Там подробно описано многое: от подключения камеры и встраивания плеера на свой сайт до трансляции на сервисы вроде YouTube-Live и не только.
 
-- [Quick start](https://docs.datarhei.com/restreamer/getting-started/quick-start)
-- [Installation](https://docs.datarhei.com/restreamer/installing/minimum-requirements)
-- [Manual](https://docs.datarhei.com/restreamer/knowledge-base/manual)
-- [Guides](https://docs.datarhei.com/restreamer/knowledge-base/user-guides)
+- [С чего начать](https://docs.datarhei.com/restreamer/getting-started/quick-start)
+- [Установка](https://docs.datarhei.com/restreamer/installing/minimum-requirements)
+- [Руководство](https://docs.datarhei.com/restreamer/knowledge-base/manual)
+- [Инструкции](https://docs.datarhei.com/restreamer/knowledge-base/user-guides)
 
-## Development
+## Разработка
 
-### Create a custom image (bundle):
+### Сборка собственного образа (bundle):
 
 #### [Restreamer FFmpeg](https://github.com/datarhei/ffmpeg):
 ```
@@ -120,7 +159,7 @@ $ cd ffmpeg
 $ docker build -f Dockerfile.alpine -t myffmpeg .
 ```
 
-#### [Restreamer backend](https://github.com/datarhei/core) (Golang):
+#### [Бэкенд Restreamer](https://github.com/datarhei/core) (Golang):
 
 ```
 $ git clone github.com/datarhei/core
@@ -128,14 +167,14 @@ $ cd core
 $ docker build -t mycore .
 ```
 
-#### [Restreamer interface](https://github.com/datarhei/restreamer-ui) (React):
+#### [Интерфейс Restreamer](https://github.com/datarhei/restreamer-ui) (React):
 ```
 $ git clone github.com/datarhei/restreamer-ui
 $ cd restreamer-ui
 $ docker build -t myrsui .
 ```
 
-#### Restreamer bundle:
+#### Сборка самого Restreamer:
 ```
 $ git clone github.com/datarhei/restreamer
 $ cd restreamer
@@ -143,19 +182,65 @@ $ docker build --build-arg FFMPEG_IMAGE=myffmpeg --build-arg CORE_IMAGE=mycore -
 $ docker run -it --rm -p 8080:8080 myrestreamer
 ```
 
-### To add/fix translations in the [Restreamer interface](https://github.com/datarhei/restreamer-ui):
+### Как добавить или исправить переводы в [интерфейсе Restreamer](https://github.com/datarhei/restreamer-ui):
 
-The Restreamer interface is currently translated in different languages, such as German, French, Italian, Spanish, and more. If you find errors in the translations or have better suggestions for some sentences, you can become a translation contributor on [poeditor.com](https://poeditor.com/join/project/ogATl3F48K).
-There you can also start a translation into a language that is not yet available in the Restreamer interface.
+Интерфейс Restreamer уже переведён на разные языки, включая немецкий, французский, итальянский, испанский и другие. Если вы нашли ошибку в переводе или у вас есть вариант получше для какой-то фразы, вы можете стать переводчиком на [poeditor.com](https://poeditor.com/join/project/ogATl3F48K).
+Там же можно начать перевод на язык, которого в интерфейсе Restreamer ещё нет.
 
-Contribute to the translations on: [https://poeditor.com/join/project/ogATl3F48K](https://poeditor.com/join/project/ogATl3F48K)
+Участвовать в переводах: [https://poeditor.com/join/project/ogATl3F48K](https://poeditor.com/join/project/ogATl3F48K)
 
-## Community support
+## Сборка в этом репозитории (GitHub Actions)
 
-For general help using Restreamer, please refer to the official [documentation](https://docs.datarhei.com/restreamer). For additional support, you can use Github to ask a question (Bug reports, Contributions, Features).
+> ⚙️ Этот раздел добавлен в форк — в оригинальном README его нет.
 
-## License
-See the [LICENSE](./LICENSE) file for licensing information.
+Образы, собранные в этом репозитории, публикуются в **GitHub Container Registry**:
 
-## Business inquiries
-**We provide support for commercial requirements with professional support, agile software development, and consulting.** If you have a commercial request, be it a bug or a feature enhancement, please contact us directly at support@datarhei.com.
+```
+ghcr.io/bwproject/restreamer:latest    # bundle, amd64
+ghcr.io/bwproject/restreamer:dev       # dev-сборка (UI: dev)
+```
+
+Команды из раздела «Быстрая установка» выше используют **официальные** образы
+`datarhei/restreamer`. Чтобы запустить образ из этого репозитория, замените имя:
+
+```sh
+docker run -d --restart=always --name restreamer \
+   -v /opt/restreamer/config:/core/config -v /opt/restreamer/data:/core/data \
+   -p 8080:8080 -p 8181:8181 \
+   -p 1935:1935 -p 1936:1936 \
+   -p 6000:6000/udp \
+   ghcr.io/bwproject/restreamer:latest
+```
+
+Workflows:
+
+| Workflow | Когда запускается | Что делает |
+|---|---|---|
+| `CI: build image` | push в `main`/`2.x`, pull request | собирает образ и прогоняет smoke-тест (FFmpeg, раскладка `/core`) |
+| `Build restreamer latest images` | вручную, push тега `v*` | собирает 4 варианта (default, rpi, vaapi, cuda) и публикует в GHCR |
+| `Build restreamer dev images` | вручную, ежедневно в 05:37 UTC | собирает dev-варианты и публикует теги `*-dev` |
+
+Все сборки идут на стандартных GitHub-раннерах (`ubuntu-latest`), никакие
+self-hosted раннеры и секреты не требуются: для GHCR используется встроенный
+`GITHUB_TOKEN`. Если дополнительно нужен Docker Hub, задайте переменную
+репозитория `DOCKERHUB_IMAGE` (например, `bwproject/restreamer`) и секреты
+`DOCKERHUB_USERNAME` / `DOCKERHUB_TOKEN`.
+
+## Поддержка сообщества
+
+По общим вопросам использования Restreamer обращайтесь к официальной [документации](https://docs.datarhei.com/restreamer). Дополнительно можно задать вопрос на GitHub (сообщения об ошибках, предложения, обсуждение возможностей).
+
+## Лицензия
+
+Проект распространяется по лицензии **Apache License, Version 2.0**.
+Полный текст — в файле [`LICENSE`](./LICENSE), сведения о происхождении и
+перечень изменений — в файле [`NOTICE`](./NOTICE).
+
+Оригинал: [datarhei/restreamer](https://github.com/datarhei/restreamer) —
+Copyright 2022 FOSS GmbH и участники проекта. Все права сохранены за их
+правообладателями. Перевод и правки в этом репозитории распространяются под той
+же лицензией Apache-2.0.
+
+## Коммерческие вопросы
+
+**Мы предоставляем поддержку коммерческих задач: профессиональный саппорт, гибкую разработку и консалтинг.** Если у вас есть коммерческий запрос — будь то ошибка или доработка функциональности, — напишите напрямую на support@datarhei.com.

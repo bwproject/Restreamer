@@ -1,21 +1,63 @@
+# Modified in this fork (see NOTICE):
+#   - runs on GitHub-hosted runners instead of `[self-hosted]`
+#   - publishes to GitHub Container Registry instead of Docker Hub
+#     (Docker Hub is used only if the optional DOCKERHUB_IMAGE variable is set)
+#   - the push trigger is a tag push instead of a branch filter that never matched
+#   - platforms are configurable, default is linux/amd64
+# Build arguments, base images and tag naming are unchanged from upstream.
+
 name: 'Build restreamer latest images'
 
 on:
     workflow_dispatch:
+        inputs:
+            platforms:
+                description: 'Target platforms'
+                type: choice
+                default: 'linux/amd64'
+                options:
+                    - 'linux/amd64'
+                    - 'linux/amd64,linux/arm64'
+                    - 'linux/amd64,linux/arm64,linux/arm/v7'
+            push:
+                description: 'Push the resulting images to the registry'
+                type: boolean
+                default: true
     workflow_call:
+        inputs:
+            platforms:
+                description: 'Target platforms'
+                type: string
+                default: 'linux/amd64'
+            push:
+                description: 'Push the resulting images to the registry'
+                type: boolean
+                default: true
     push:
-        branches-ignore:
-            - '**'
+        tags:
+            - 'v*'
+
+permissions:
+    contents: read
+    packages: write
+
+concurrency:
+    group: build-latest-${{ github.ref }}
+    cancel-in-progress: true
 
 jobs:
     versions:
+        name: 'Resolve UI and core versions'
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         outputs:
             uiversion: ${{ steps.restreamerui.outputs.version }}
             bundleversion: ${{ steps.restreamerui.outputs.bundle }}
             coreversion: ${{ steps.core.outputs.version }}
+            corealpine: ${{ steps.coretags.outputs.alpine }}
+            coreubuntu: ${{ steps.coretags.outputs.ubuntu }}
         steps:
-            - name: Checkout restreamr-ui repo
+            - name: Checkout restreamer-ui repo
               uses: actions/checkout@v4
               with:
                   repository: datarhei/restreamer-ui
@@ -44,65 +86,133 @@ jobs:
                   echo "bundle: ${{ steps.restreamerui.outputs.bundle }}"
                   echo "core: ${{ steps.core.outputs.version }}"
 
+            # Added in this fork: the core version in the git repository can be
+            # ahead of the published base images. Resolve a version whose images
+            # really exist on Docker Hub so the build does not fail on a 404.
+            - name: Resolve core base image versions
+              id: coretags
+              env:
+                  CORE_VERSION: ${{ steps.core.outputs.version }}
+              run: |
+                  set -euo pipefail
+
+                  exists() {
+                    code=$(curl -sS -o /dev/null -w '%{http_code}' \
+                      "https://hub.docker.com/v2/repositories/datarhei/base/tags/$1")
+                    [ "$code" = "200" ]
+                  }
+
+                  newest_for() {
+                    curl -fsS "https://hub.docker.com/v2/repositories/datarhei/base/tags?page_size=100&name=core" \
+                      | jq -r '.results[].name' \
+                      | grep -E "^core[0-9]+\.[0-9]+\.[0-9]+-$1\$" \
+                      | sort -V | tail -1 \
+                      | sed -E 's/^core([0-9]+\.[0-9]+\.[0-9]+)-.*$/\1/'
+                  }
+
+                  if exists "core${CORE_VERSION}-alpine3.20" && exists "core${CORE_VERSION}-ubuntu22.04"; then
+                    alpine="${CORE_VERSION}"
+                    ubuntu="${CORE_VERSION}"
+                    echo "Using core ${CORE_VERSION} as pinned in the source tree."
+                  else
+                    echo "::warning::core ${CORE_VERSION} images are not published on Docker Hub, falling back to the newest published release."
+                    alpine=$(newest_for 'alpine3\.20')
+                    ubuntu=$(newest_for 'ubuntu22\.04')
+                  fi
+
+                  if [ -z "${alpine}" ] || [ -z "${ubuntu}" ]; then
+                    echo "::error::Could not resolve core base image versions on Docker Hub."
+                    exit 1
+                  fi
+
+                  echo "alpine=${alpine}" >> "$GITHUB_OUTPUT"
+                  echo "ubuntu=${ubuntu}" >> "$GITHUB_OUTPUT"
+                  echo "core (alpine3.20): ${alpine}"
+                  echo "core (ubuntu22.04): ${ubuntu}"
+
     docker:
+        name: 'Build ${{ matrix.prefix || "default" }} image'
         needs: versions
-        runs-on: [self-hosted]
+        runs-on: ubuntu-latest
+        timeout-minutes: 120
+        env:
+            SHOULD_PUSH: ${{ github.event_name == 'push' || inputs.push }}
         strategy:
+            fail-fast: false
             matrix:
                 include:
                     - ui: ${{ needs.versions.outputs.uiversion }}
-                      core: core${{ needs.versions.outputs.coreversion }}-alpine3.20
+                      core: core${{ needs.versions.outputs.corealpine }}-alpine3.20
                       ffmpeg: ffmpeg6.1.1-alpine3.20
-                      platforms: linux/amd64,linux/arm64,linux/arm/v7
                       prefix:
                     - ui: ${{ needs.versions.outputs.uiversion }}
-                      core: core${{ needs.versions.outputs.coreversion }}-alpine3.20
+                      core: core${{ needs.versions.outputs.corealpine }}-alpine3.20
                       ffmpeg: ffmpeg6.1.1-rpi-alpine3.20
-                      platforms: linux/arm64,linux/arm/v7
                       prefix: rpi-
                     - ui: ${{ needs.versions.outputs.uiversion }}
-                      core: core${{ needs.versions.outputs.coreversion }}-ubuntu22.04
+                      core: core${{ needs.versions.outputs.coreubuntu }}-ubuntu22.04
                       ffmpeg: ffmpeg6.1.1-vaapi-ubuntu22.04
-                      platforms: linux/amd64
                       prefix: vaapi-
                     - ui: ${{ needs.versions.outputs.uiversion }}
-                      core: core${{ needs.versions.outputs.coreversion }}-ubuntu22.04
+                      core: core${{ needs.versions.outputs.coreubuntu }}-ubuntu22.04
                       ffmpeg: ffmpeg6.1.1-cuda-ubuntu22.04-cuda11.7.1
-                      platforms: linux/amd64
                       prefix: cuda-
         steps:
             - name: Checkout
               uses: actions/checkout@v4
 
+            - name: Prepare registry image names
+              id: names
+              env:
+                  DOCKERHUB_IMAGE: ${{ vars.DOCKERHUB_IMAGE }}
+              run: |
+                  set -euo pipefail
+                  names="ghcr.io/$(echo "$GITHUB_REPOSITORY" | tr '[:upper:]' '[:lower:]')"
+                  if [ -n "${DOCKERHUB_IMAGE}" ]; then
+                    names="${names}"$'\n'"${DOCKERHUB_IMAGE}"
+                  fi
+                  {
+                    echo 'images<<__EOF__'
+                    echo "${names}"
+                    echo '__EOF__'
+                  } >> "$GITHUB_OUTPUT"
+
             - name: Docker meta
               id: meta
               uses: docker/metadata-action@v5
               with:
-                  images: |
-                      datarhei/restreamer
+                  images: ${{ steps.names.outputs.images }}
                   tags: |
-                      type=raw,value=${{ matrix.prefix }}${{ needs.versions.outputs.bundleversion }}-ui${{ needs.versions.outputs.uiversion }}-${{ matrix.core }}-${{ matrix.ffmpeg }}
                       type=raw,value=${{ matrix.prefix }}${{ needs.versions.outputs.bundleversion }}
                       type=raw,value=${{ matrix.prefix }}latest
+                      type=sha,prefix=${{ matrix.prefix }}sha-,format=short
 
             - name: Set up QEMU
-              uses: docker/setup-qemu-action@master
+              uses: docker/setup-qemu-action@v3
               with:
                   platforms: all
 
             - name: Set up Docker Buildx
               id: buildx
-              uses: docker/setup-buildx-action@master
+              uses: docker/setup-buildx-action@v3
 
-            - name: Login to DockerHub
-              if: github.event_name != 'pull_request'
+            - name: Login to GitHub Container Registry
+              if: env.SHOULD_PUSH == 'true'
               uses: docker/login-action@v3
               with:
-                  username: ${{ secrets.DOCKER_USERNAME }}
-                  password: ${{ secrets.DOCKER_PASSWORD }}
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Login to Docker Hub (optional)
+              if: env.SHOULD_PUSH == 'true' && vars.DOCKERHUB_IMAGE != ''
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ secrets.DOCKERHUB_USERNAME }}
+                  password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Build Multi-Arch
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                   builder: ${{ steps.buildx.outputs.name }}
                   context: .
@@ -111,7 +221,9 @@ jobs:
                       RESTREAMER_UI_IMAGE=datarhei/restreamer-ui:${{ matrix.ui }}
                       CORE_IMAGE=datarhei/base:${{ matrix.core }}
                       FFMPEG_IMAGE=datarhei/base:${{ matrix.ffmpeg }}
-                  platforms: ${{ matrix.platforms }}
-                  push: true
+                  platforms: ${{ inputs.platforms || 'linux/amd64' }}
+                  push: ${{ env.SHOULD_PUSH == 'true' }}
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
+                  cache-from: type=gha,scope=latest-${{ matrix.prefix || 'default' }}
+                  cache-to: type=gha,mode=max,scope=latest-${{ matrix.prefix || 'default' }}

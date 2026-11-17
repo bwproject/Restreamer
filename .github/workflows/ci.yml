@@ -1,0 +1,62 @@
+# Added in this fork (see NOTICE). Not present upstream.
+# Verifies on every push / pull request that the Dockerfile still builds and that
+# the resulting image contains a runnable core bundle.
+
+name: 'CI: build image'
+
+on:
+    push:
+        branches: ['main', '2.x']
+    pull_request:
+    workflow_dispatch:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    build:
+        name: 'Build and smoke test'
+        runs-on: ubuntu-latest
+        timeout-minutes: 45
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build image
+              uses: docker/build-push-action@v6
+              with:
+                  context: .
+                  file: ./Dockerfile
+                  platforms: linux/amd64
+                  push: false
+                  load: true
+                  tags: restreamer:ci
+                  cache-from: type=gha,scope=ci
+                  cache-to: type=gha,mode=max,scope=ci
+
+            - name: Smoke test - FFmpeg is present
+              run: docker run --rm --entrypoint ffmpeg restreamer:ci -version
+
+            - name: Smoke test - bundle layout
+              run: |
+                  set -euo pipefail
+                  docker run --rm --entrypoint sh restreamer:ci -c '
+                    set -e
+                    test -x /core/bin/run.sh
+                    test -d /core/ui
+                    test -f /core/ui/CHANGELOG.md
+                    test -f /core/ui-root/index.html
+                    command -v ffmpeg >/dev/null
+                    echo "bundle layout OK"
+                  '
+
+            - name: Report image size
+              run: |
+                  docker image inspect restreamer:ci --format 'image size: {{.Size}} bytes'

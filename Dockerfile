@@ -1,3 +1,9 @@
+# Modified in this fork: the upstream build-time download
+#   ADD https://raw.githubusercontent.com/datarhei/restreamer/2.x/CHANGELOG.md /core/ui/CHANGELOG.md
+# was replaced with a local COPY so that the build does not need network access
+# to the upstream repository. Image contents are otherwise identical.
+# See NOTICE for the full list of changes.
+
 ARG RESTREAMER_UI_IMAGE=datarhei/restreamer-ui:latest
 ARG CORE_IMAGE=datarhei/base:alpine-core-latest
 ARG FFMPEG_IMAGE=datarhei/base:alpine-ffmpeg-latest
@@ -9,7 +15,7 @@ FROM $FFMPEG_IMAGE
 COPY --from=core /core /core
 COPY --from=restreamer-ui /ui/build /core/ui
 
-ADD https://raw.githubusercontent.com/datarhei/restreamer/2.x/CHANGELOG.md /core/ui/CHANGELOG.md
+COPY ./CHANGELOG.md /core/ui/CHANGELOG.md
 COPY ./run.sh /core/bin/run.sh
 COPY ./ui-root /core/ui-root
 

@@ -1,0 +1,58 @@
+Restreamer — русская документация и адаптация CI
+=================================================
+
+This repository is a modified copy ("fork") of the Restreamer bundle repository.
+
+Original work
+-------------
+  Project : Restreamer
+  Source  : https://github.com/datarhei/restreamer
+  Branch  : 2.x (translation based on commit fd12aee, "Bundle with FFmpeg 8")
+  Author  : datarhei GmbH and Restreamer contributors
+  License : Apache License, Version 2.0 (see the LICENSE file in this repository)
+  Notice  : the LICENSE file states "Copyright 2022 FOSS GmbH"
+
+The original work is distributed under the Apache License, Version 2.0 and is
+reproduced here with its LICENSE file retained unchanged.
+
+Modifications in this repository
+--------------------------------
+In accordance with section 4(b) of the Apache License 2.0, every modified file
+carries a prominent notice and the changes are listed here.
+
+1. README.md
+   Translated into Russian. The original English text is preserved verbatim as
+   README.en.md and is otherwise untouched. A section describing the origin,
+   the license and the trademark position of the project was added.
+
+2. README.en.md
+   New file. Verbatim copy of the upstream README.md at commit fd12aee.
+
+3. NOTICE
+   New file (this one). Attribution and a list of changes.
+
+4. Dockerfile
+   The build-time download
+     ADD https://raw.githubusercontent.com/datarhei/restreamer/2.x/CHANGELOG.md ...
+   was replaced with
+     COPY ./CHANGELOG.md ...
+   so that building the image does not depend on network access to the upstream
+   repository. The resulting image contents are identical.
+
+5. .github/workflows/*
+   Adapted so that they run on GitHub-hosted runners instead of the upstream
+   self-hosted runners, publish images to GitHub Container Registry instead of
+   Docker Hub, and can be triggered without access to upstream secrets.
+   Details: scripts and build arguments are unchanged; only the runner labels,
+   the registry, the authentication steps and the trigger configuration differ.
+
+6. .github/workflows/ci.yml
+   New file. Builds the image and runs a smoke test on push and pull request.
+
+Trademarks
+----------
+"datarhei", "Restreamer" and the associated logos are trademarks of their
+respective owners. The Apache License 2.0 does not grant permission to use trade
+names, trademarks, service marks or product names. This repository is an
+unofficial Russian-language documentation fork. It is not affiliated with,
+endorsed by, or supported by datarhei GmbH.
