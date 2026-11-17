@@ -11,24 +11,20 @@ name: 'Build restreamer latest images'
 on:
     workflow_dispatch:
         inputs:
-            platforms:
-                description: 'Target platforms'
-                type: choice
-                default: 'linux/amd64'
-                options:
-                    - 'linux/amd64'
-                    - 'linux/amd64,linux/arm64'
-                    - 'linux/amd64,linux/arm64,linux/arm/v7'
+            multiarch:
+                description: 'Build every architecture the variant supports (linux/arm64 and linux/arm/v7 are emulated)'
+                type: boolean
+                default: true
             push:
                 description: 'Push the resulting images to the registry'
                 type: boolean
                 default: true
     workflow_call:
         inputs:
-            platforms:
-                description: 'Target platforms'
-                type: string
-                default: 'linux/amd64'
+            multiarch:
+                description: 'Build every architecture the variant supports'
+                type: boolean
+                default: true
             push:
                 description: 'Push the resulting images to the registry'
                 type: boolean
@@ -145,18 +141,26 @@ jobs:
                       core: core${{ needs.versions.outputs.corealpine }}-alpine3.20
                       ffmpeg: ffmpeg6.1.1-alpine3.20
                       prefix:
+                      platforms: 'linux/amd64,linux/arm64,linux/arm/v7'
+                      platforms_single: 'linux/amd64'
                     - ui: ${{ needs.versions.outputs.uiversion }}
                       core: core${{ needs.versions.outputs.corealpine }}-alpine3.20
                       ffmpeg: ffmpeg6.1.1-rpi-alpine3.20
                       prefix: rpi-
+                      platforms: 'linux/arm64,linux/arm/v7'
+                      platforms_single: 'linux/arm64'
                     - ui: ${{ needs.versions.outputs.uiversion }}
                       core: core${{ needs.versions.outputs.coreubuntu }}-ubuntu22.04
                       ffmpeg: ffmpeg6.1.1-vaapi-ubuntu22.04
                       prefix: vaapi-
+                      platforms: 'linux/amd64'
+                      platforms_single: 'linux/amd64'
                     - ui: ${{ needs.versions.outputs.uiversion }}
                       core: core${{ needs.versions.outputs.coreubuntu }}-ubuntu22.04
                       ffmpeg: ffmpeg6.1.1-cuda-ubuntu22.04-cuda11.7.1
                       prefix: cuda-
+                      platforms: 'linux/amd64'
+                      platforms_single: 'linux/amd64'
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -221,7 +225,7 @@ jobs:
                       RESTREAMER_UI_IMAGE=datarhei/restreamer-ui:${{ matrix.ui }}
                       CORE_IMAGE=datarhei/base:${{ matrix.core }}
                       FFMPEG_IMAGE=datarhei/base:${{ matrix.ffmpeg }}
-                  platforms: ${{ inputs.platforms || 'linux/amd64' }}
+                  platforms: ${{ (github.event_name == 'push' || inputs.multiarch) && matrix.platforms || matrix.platforms_single }}
                   push: ${{ env.SHOULD_PUSH == 'true' }}
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}

@@ -10,24 +10,20 @@ name: 'Build restreamer dev images'
 on:
     workflow_dispatch:
         inputs:
-            platforms:
-                description: 'Target platforms'
-                type: choice
-                default: 'linux/amd64'
-                options:
-                    - 'linux/amd64'
-                    - 'linux/amd64,linux/arm64'
-                    - 'linux/amd64,linux/arm64,linux/arm/v7'
+            multiarch:
+                description: 'Build every architecture the variant supports (linux/arm64 and linux/arm/v7 are emulated)'
+                type: boolean
+                default: true
             push:
                 description: 'Push the resulting images to the registry'
                 type: boolean
                 default: true
     workflow_call:
         inputs:
-            platforms:
-                description: 'Target platforms'
-                type: string
-                default: 'linux/amd64'
+            multiarch:
+                description: 'Build every architecture the variant supports'
+                type: boolean
+                default: true
             push:
                 description: 'Push the resulting images to the registry'
                 type: boolean
@@ -58,18 +54,26 @@ jobs:
                       core: core-dev-alpine3.23
                       ffmpeg: ffmpeg8.1.1-alpine3.23
                       name: dev
+                      platforms: 'linux/amd64,linux/arm64,linux/arm/v7'
+                      platforms_single: 'linux/amd64'
                     - ui: dev
                       core: core-dev-alpine3.23
                       ffmpeg: ffmpeg8.1.1-rpi-alpine3.23
                       name: rpi-dev
+                      platforms: 'linux/arm64,linux/arm/v7'
+                      platforms_single: 'linux/arm64'
                     - ui: dev
                       core: core-dev-ubuntu24.04
                       ffmpeg: ffmpeg8.1.1-vaapi-ubuntu24.04
                       name: vaapi-dev
+                      platforms: 'linux/amd64'
+                      platforms_single: 'linux/amd64'
                     - ui: dev
                       core: core-dev-ubuntu24.04
                       ffmpeg: ffmpeg8.1.1-cuda-ubuntu24.04-cuda12.9.1
                       name: cuda-dev
+                      platforms: 'linux/amd64'
+                      platforms_single: 'linux/amd64'
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -133,7 +137,7 @@ jobs:
                       RESTREAMER_UI_IMAGE=datarhei/restreamer-ui:${{ matrix.ui }}
                       CORE_IMAGE=datarhei/base:${{ matrix.core }}
                       FFMPEG_IMAGE=datarhei/base:${{ matrix.ffmpeg }}
-                  platforms: ${{ inputs.platforms || 'linux/amd64' }}
+                  platforms: ${{ (github.event_name == 'push' || github.event_name == 'schedule' || inputs.multiarch) && matrix.platforms || matrix.platforms_single }}
                   push: ${{ env.SHOULD_PUSH == 'true' }}
                   tags: ${{ steps.meta.outputs.tags }}
                   labels: ${{ steps.meta.outputs.labels }}
