@@ -131,7 +131,7 @@ jobs:
                   echo "core (ubuntu22.04): ${ubuntu}"
 
     docker:
-        name: 'Build ${{ matrix.prefix || "default" }} image'
+        name: "Build ${{ matrix.prefix || 'default' }} image"
         needs: versions
         runs-on: ubuntu-latest
         timeout-minutes: 120
